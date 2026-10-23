@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>SecFeed</title>
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' https: data:; frame-src https://www.youtube-nocookie.com; connect-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
+<meta name="referrer" content="strict-origin-when-cross-origin">
+<meta name="description" content="A 5-minute swipeable brief of IT and cybersecurity news, exploited vulns, tutorials and a daily quiz.">
+<meta name="theme-color" content="#0c1220">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="SecFeed">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,500..800&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="app.css">
+</head>
+<body>
+<!--APP-->
+<div class="app">
+  <header class="top">
+    <div class="progress" id="progress" aria-hidden="true"></div>
+    <div class="bar">
+      <span class="brand"><b>&gt;_</b>SecFeed</span>
+      <span class="count" id="count" aria-live="polite"></span>
+      <button class="iconbtn" id="btn-saved" aria-label="Saved"><svg viewBox="0 0 24 24"><path d="M6 3h12v18l-6-4-6 4z"/></svg></button>
+      <button class="iconbtn" id="btn-settings" aria-label="Settings"><svg viewBox="0 0 24 24"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg></button>
+    </div>
+  </header>
+
+  <main class="feed" id="feed"><div class="loading">Loading today's brief…</div></main>
+
+  <div class="sheet" id="saved" hidden>
+    <div class="panel" role="dialog" aria-label="Saved">
+      <div class="hd"><h3>Saved</h3><button class="cta ghost" data-close>Done</button></div>
+      <ul class="saved" id="saved-list"></ul>
+    </div>
+  </div>
+
+  <div class="sheet" id="settings" hidden>
+    <div class="panel" role="dialog" aria-label="Settings">
+      <div class="hd"><h3>Your brief</h3><button class="cta" data-close>Done</button></div>
+      <div><h4>Topics</h4><div class="chips" id="topics"></div><p class="small" id="topic-note" style="margin:8px 0 0"></p></div>
+      <div><h4>Cards per brief</h4><div class="seg" id="deck-size"><button data-n="10">10</button><button data-n="12">12</button><button data-n="15">15</button></div></div>
+      <div>
+        <h4>Include</h4>
+        <label class="switch" for="opt-videos">YouTube tutorials <input type="checkbox" id="opt-videos"></label>
+        <label class="switch" for="opt-community">Reddit threads <input type="checkbox" id="opt-community"></label>
+      </div>
+      <div><h4>Theme</h4><div class="seg" id="theme"><button data-t="system">Auto</button><button data-t="dark">Dark</button><button data-t="light">Light</button></div></div>
+      <div><h4>History</h4><button class="cta ghost" id="reset-seen">Show me everything again</button></div>
+      <div><h4>Sources</h4><p class="small" id="status" style="margin:0"></p></div>
+    </div>
+  </div>
+</div>
+<script src="app.js"></script>
+<!--/APP-->
+</body>
+</html>
