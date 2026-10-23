@@ -20,19 +20,35 @@ const AI_CACHE = path.join(ROOT, 'data/.ai-cache.json');
 const cfg = JSON.parse(await fs.readFile(path.join(ROOT, 'scripts/sources.json'), 'utf8'));
 const bank = JSON.parse(await fs.readFile(path.join(ROOT, 'scripts/quiz-bank.json'), 'utf8'));
 const UA = 'Mozilla/5.0 (compatible; SecFeedBot/1.0; +https://github.com)';
+// Reddit's API rules ask for a descriptive, unique bot name; generic ones get throttled harder.
+const REDDIT_UA = 'web:secfeed:v1.1 (personal security news digest; runs every 2h on GitHub Actions)';
 const status = {};
 
 // ---------- fetching ----------
-async function get(url, fixtureName) {
+async function get(url, fixtureName, ua = UA) {
   if (FIXTURES) {
     for (const ext of ['', '.xml', '.json', '.html']) {
       try { return await fs.readFile(path.resolve(ROOT, FIXTURES, fixtureName + ext), 'utf8'); } catch {}
     }
     throw new Error('no fixture');
   }
-  const res = await fetch(url, { headers: { 'User-Agent': UA, Accept: '*/*' }, signal: AbortSignal.timeout(20000), redirect: 'follow' });
-  if (!res.ok) throw new Error('HTTP ' + res.status);
+  const res = await fetch(url, { headers: { 'User-Agent': ua, Accept: '*/*' }, signal: AbortSignal.timeout(20000), redirect: 'follow' });
+  if (!res.ok) {
+    const err = new Error('HTTP ' + res.status);
+    err.status = res.status;
+    err.retryAfter = +res.headers.get('retry-after') || 0; // seconds, when the site tells us to slow down
+    throw err;
+  }
   return res.text();
+}
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+// For sites that rate-limit (HTTP 429): wait as asked (max 30s) and try once more.
+async function getPolitely(url, fixtureName, ua) {
+  try { return await get(url, fixtureName, ua); } catch (e) {
+    if (e.status !== 429 && e.status !== 503) throw e;
+    await sleep(Math.min(Math.max(e.retryAfter, 5), 30) * 1000);
+    return get(url, fixtureName, ua);
+  }
 }
 
 // ---------- tiny XML helpers (RSS 2.0 + Atom) ----------
@@ -79,6 +95,7 @@ function parseFeed(xml) {
     summary: stripHtml(tag(e, 'summary') || tag(e, 'content') || tag(e, 'media:description')),
     author: stripHtml(tag(e, 'name')),
     categories: [],
+    sub: attr(e, 'category', 'term'), // Reddit tags each entry with its subreddit
     image: safe(attr(e, 'media:thumbnail', 'url')),
     videoId: (tag(e, 'yt:videoId').match(/^[\w-]{6,20}$/) || [''])[0],
     views: +attr(e, 'media:statistics', 'views') || 0,
@@ -237,21 +254,25 @@ async function loadVideos() {
 }
 
 async function loadReddit() {
-  const out = [];
-  await Promise.all(cfg.reddit.map(async ({ sub }) => {
-    try {
-      const items = parseFeed(await get(`https://www.reddit.com/r/${sub}/top/.rss?t=day&limit=6`, `reddit-${sub}`));
-      for (const [rank, it] of items.entries()) {
-        if (!it.title || !it.url || /megathread|weekly|monthly|moronic monday|thickheaded thursday|mentorship/i.test(it.title)) continue;
-        if (validDate(it.published) && hoursOld(it.published) > cfg.maxAgeHours.reddit) continue;
-        const c = classify(it.title);
-        out.push({ type: 'reddit', id: hash(it.url), title: it.title, url: it.url, source: 'r/' + sub,
-          published: validDate(it.published) ? new Date(it.published).toISOString() : NOW.toISOString(),
-          tags: c.tags, severity: 'info', score: 25 - rank * 3 });
-      }
-      status['Reddit r/' + sub] = 'ok';
-    } catch (e) { status['Reddit r/' + sub] = 'failed: ' + e.message; }
-  }));
+  if (!cfg.reddit?.length) return [];
+  // One combined request (r/a+b+c) instead of one per subreddit: Reddit rate-limits bursts from shared cloud IPs.
+  const subs = cfg.reddit.map((r) => r.sub);
+  const out = [], perSub = {};
+  try {
+    const items = parseFeed(await getPolitely(`https://www.reddit.com/r/${subs.join('+')}/top/.rss?t=day&limit=25`, 'reddit', REDDIT_UA));
+    for (const [rank, it] of items.entries()) {
+      if (!it.title || !it.url || /megathread|weekly|monthly|moronic monday|thickheaded thursday|mentorship/i.test(it.title)) continue;
+      if (validDate(it.published) && hoursOld(it.published) > cfg.maxAgeHours.reddit) continue;
+      const sub = it.sub || (it.url.match(/\/r\/([^/]+)/) || [])[1] || subs[0];
+      if ((perSub[sub] = (perSub[sub] || 0) + 1) > 2) continue; // keep the big subs from crowding out the small ones
+      out.push({ type: 'reddit', id: hash(it.url), title: it.title, url: it.url, source: 'r/' + sub,
+        published: validDate(it.published) ? new Date(it.published).toISOString() : NOW.toISOString(),
+        tags: classify(it.title).tags, severity: 'info', score: 25 - rank });
+    }
+    status['Reddit (' + subs.map((s) => 'r/' + s).join(', ') + ')'] = `ok (${out.length})`;
+  } catch (e) {
+    status['Reddit (' + subs.map((s) => 'r/' + s).join(', ') + ')'] = 'failed: ' + e.message + (e.status === 429 ? ' (rate-limited; cards come back on a later run)' : '');
+  }
   return out.sort((a, b) => b.score - a.score).slice(0, 6);
 }
 
