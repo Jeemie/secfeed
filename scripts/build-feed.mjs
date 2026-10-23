@@ -285,21 +285,28 @@ async function addAiSummaries(stories) {
   for (const s of stories.slice(0, cfg.ai.topStories)) {
     if (cache[s.id]) { s.ai = cache[s.id].ai; continue; }
     try {
-      const res = await fetch('https://api.anthropic.com/v1/messages', {
-        method: 'POST', signal: AbortSignal.timeout(30000),
+      const prompt = `You write a 20-second morning briefing card for IT and security staff. Using ONLY the reporting below, reply with only this JSON and nothing else: {"bullets":[3 strings, each under 18 words],"action":"one concrete thing an admin should do today, under 16 words, or empty string if none"}. No speculation.\n\n${s._context.slice(0, 4000)}`;
+      // Haiku 5.5 thinks by default and thinking counts toward max_tokens, so leave room and ask for low effort.
+      const call = (extra) => fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST', signal: AbortSignal.timeout(60000),
         headers: { 'x-api-key': key, 'anthropic-version': '2023-06-01', 'content-type': 'application/json' },
-        body: JSON.stringify({ model: cfg.ai.model, max_tokens: 300, messages: [{ role: 'user', content:
-          `You write a 20-second morning briefing card for IT and security staff. Using ONLY the reporting below, return JSON: {"bullets":[3 strings, each under 18 words],"action":"one concrete thing an admin should do today, under 16 words, or empty string if none"}. No speculation.\n\n${s._context.slice(0, 4000)}` }] }),
+        body: JSON.stringify({ model: cfg.ai.model, max_tokens: cfg.ai.maxTokens || 4000, ...extra, messages: [{ role: 'user', content: prompt }] }),
       });
-      if (!res.ok) throw new Error('HTTP ' + res.status);
+      let res = await call({ output_config: { effort: cfg.ai.effort || 'low' } });
+      if (res.status === 400) res = await call({}); // model doesn't accept that effort setting: use its defaults
+      if (!res.ok) throw new Error(`HTTP ${res.status}: ${(await res.text()).slice(0, 200)}`);
       const j = await res.json();
-      const text = j.content?.map((c) => c.text || '').join('') || '';
+      const text = (j.content || []).filter((c) => c.type === 'text').map((c) => c.text).join('');
+      if (!text.includes('{')) throw new Error(`no summary in reply (stop_reason: ${j.stop_reason})`);
       const ai = JSON.parse(text.slice(text.indexOf('{'), text.lastIndexOf('}') + 1));
       if (Array.isArray(ai.bullets)) { s.ai = { bullets: ai.bullets.slice(0, 3), action: ai.action || '' }; cache[s.id] = { ai: s.ai, at: NOW.toISOString() }; calls++; }
     } catch (e) { console.warn('AI summary failed for', s.title, e.message); }
   }
   const keep = Object.entries(cache).sort((a, b) => b[1].at.localeCompare(a[1].at)).slice(0, 300);
-  await fs.writeFile(AI_CACHE, JSON.stringify(Object.fromEntries(keep)));
+  try {
+    await fs.mkdir(path.dirname(AI_CACHE), { recursive: true });
+    await fs.writeFile(AI_CACHE, JSON.stringify(Object.fromEntries(keep)));
+  } catch (e) { console.warn('Could not save AI cache:', e.message); } // never fail the build over the cache
   status['AI summaries'] = `on (${calls} new, rest cached)`;
   return true;
 }

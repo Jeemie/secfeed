@@ -1,14 +1,54 @@
 {
   "_comment": "Edit this file to add/remove sources. Any source that fails is skipped; the rest still publish.",
   "news": [
-    { "id": "bleepingcomputer", "name": "BleepingComputer", "url": "https://www.bleepingcomputer.com/feed/", "weight": 1.0 },
-    { "id": "thehackernews", "name": "The Hacker News", "url": "https://feeds.feedburner.com/TheHackersNews", "weight": 1.0 },
-    { "id": "krebs", "name": "Krebs on Security", "url": "https://krebsonsecurity.com/feed/", "weight": 1.1 },
-    { "id": "securityweek", "name": "SecurityWeek", "url": "https://www.securityweek.com/feed/", "weight": 0.9 },
-    { "id": "darkreading", "name": "Dark Reading", "url": "https://www.darkreading.com/rss.xml", "weight": 0.8 },
-    { "id": "theregister", "name": "The Register", "url": "https://www.theregister.com/security/headlines.atom", "weight": 0.8 },
-    { "id": "sans-isc", "name": "SANS ISC", "url": "https://isc.sans.edu/rssfeed_full.xml", "weight": 0.9 },
-    { "id": "cisa-advisories", "name": "CISA", "url": "https://www.cisa.gov/cybersecurity-advisories/all.xml", "weight": 1.0 }
+    {
+      "id": "bleepingcomputer",
+      "name": "BleepingComputer",
+      "url": "https://www.bleepingcomputer.com/feed/",
+      "weight": 1.0
+    },
+    {
+      "id": "thehackernews",
+      "name": "The Hacker News",
+      "url": "https://feeds.feedburner.com/TheHackersNews",
+      "weight": 1.0
+    },
+    {
+      "id": "krebs",
+      "name": "Krebs on Security",
+      "url": "https://krebsonsecurity.com/feed/",
+      "weight": 1.1
+    },
+    {
+      "id": "securityweek",
+      "name": "SecurityWeek",
+      "url": "https://www.securityweek.com/feed/",
+      "weight": 0.9
+    },
+    {
+      "id": "darkreading",
+      "name": "Dark Reading",
+      "url": "https://www.darkreading.com/rss.xml",
+      "weight": 0.8
+    },
+    {
+      "id": "theregister",
+      "name": "The Register",
+      "url": "https://www.theregister.com/security/headlines.atom",
+      "weight": 0.8
+    },
+    {
+      "id": "sans-isc",
+      "name": "SANS ISC",
+      "url": "https://isc.sans.edu/rssfeed_full.xml",
+      "weight": 0.9
+    },
+    {
+      "id": "cisa-advisories",
+      "name": "CISA",
+      "url": "https://www.cisa.gov/cybersecurity-advisories/all.xml",
+      "weight": 1.0
+    }
   ],
   "kev": {
     "id": "kev",
@@ -19,24 +59,63 @@
     "days": 7
   },
   "youtube": [
-    { "name": "NetworkChuck", "id": "UC9x0AN7BWHpCDHSm9NiJFJQ", "handle": "NetworkChuck" },
-    { "name": "John Hammond", "id": "UCVeW9qkBjo3zosnqUbG7CFw", "handle": "_JohnHammond" },
-    { "name": "David Bombal", "id": "UCP7WmQ_U4GB3K51Od9QvM0w", "handle": "davidbombal" },
-    { "name": "Professor Messer", "handle": "professormesser" },
-    { "name": "IppSec", "handle": "ippsec" },
-    { "name": "Lawrence Systems", "handle": "LAWRENCESYSTEMS" },
-    { "name": "PowerCert Animated Videos", "handle": "PowerCertAnimatedVideos" },
-    { "name": "Seytonic", "handle": "Seytonic" }
+    {
+      "name": "NetworkChuck",
+      "id": "UC9x0AN7BWHpCDHSm9NiJFJQ",
+      "handle": "NetworkChuck"
+    },
+    {
+      "name": "John Hammond",
+      "id": "UCVeW9qkBjo3zosnqUbG7CFw",
+      "handle": "_JohnHammond"
+    },
+    {
+      "name": "David Bombal",
+      "id": "UCP7WmQ_U4GB3K51Od9QvM0w",
+      "handle": "davidbombal"
+    },
+    {
+      "name": "Professor Messer",
+      "handle": "professormesser"
+    },
+    {
+      "name": "IppSec",
+      "handle": "ippsec"
+    },
+    {
+      "name": "Lawrence Systems",
+      "handle": "LAWRENCESYSTEMS"
+    },
+    {
+      "name": "PowerCert Animated Videos",
+      "handle": "PowerCertAnimatedVideos"
+    },
+    {
+      "name": "Seytonic",
+      "handle": "Seytonic"
+    }
   ],
   "reddit": [
-    { "sub": "sysadmin" },
-    { "sub": "netsec" },
-    { "sub": "cybersecurity" }
+    {
+      "sub": "sysadmin"
+    },
+    {
+      "sub": "netsec"
+    },
+    {
+      "sub": "cybersecurity"
+    }
   ],
   "ai": {
     "_comment": "Only runs if the ANTHROPIC_API_KEY secret is set. Summaries are cached, so each story is summarized once.",
     "topStories": 3,
-    "model": "claude-haiku-5-5"
+    "model": "claude-haiku-5-5",
+    "maxTokens": 4000,
+    "effort": "low"
   },
-  "maxAgeHours": { "news": 72, "reddit": 36, "video": 1080 }
+  "maxAgeHours": {
+    "news": 72,
+    "reddit": 36,
+    "video": 1080
+  }
 }
