@@ -77,6 +77,7 @@ a { color: inherit; }
 
 .meta { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; font: 500 12px/1.2 var(--font-mono); color: var(--muted); text-transform: uppercase; letter-spacing: .04em; }
 .meta > span:not(.chip) + span:not(.chip)::before { content: "·"; margin-right: 10px; opacity: .7; }
+.meta .src { white-space: nowrap; }
 .chip { display: inline-flex; align-items: center; gap: 6px; padding: 5px 9px; border-radius: 999px; border: 1px solid var(--line); font: 600 11px/1 var(--font-mono); letter-spacing: .06em; text-transform: uppercase; color: var(--fg); white-space: nowrap; }
 .chip.sev { border-color: var(--sev); color: var(--sev); }
 .chip.sev::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--sev); }
@@ -95,8 +96,14 @@ h1 { font-size: clamp(36px, 10vw, 50px); line-height: .98; font-weight: 800; }
 .cta { align-self: flex-start; display: inline-flex; align-items: center; gap: 8px; padding: 11px 16px; border-radius: 999px; background: var(--fg); color: var(--bg); font-weight: 600; font-size: 15px; text-decoration: none; }
 .cta.ghost { background: transparent; color: var(--fg); border: 1px solid var(--line); }
 .row { display: flex; flex-wrap: wrap; gap: 10px; }
-.hero-img { position: absolute; inset: 0 0 auto; height: 42%; background: var(--bg-2) center/cover no-repeat; }
-.hero-img img { width: 100%; height: 100%; object-fit: cover; display: block; opacity: .55; }
+/* Banner sits in the layout above the text: it takes only the space the text leaves free (shrinking to nothing
+   on text-heavy cards), so it can never cover the headline. Negative margins make it full-bleed. */
+.hero-img { position: relative; flex: 1 1 0; min-height: 0; max-height: 55%; margin-bottom: auto; overflow: hidden; background: var(--bg-2);
+  margin-top: calc(-1 * (env(safe-area-inset-top, 0px) + 92px));
+  margin-left: calc(-1 * max(20px, env(safe-area-inset-left, 0px)));
+  margin-right: calc(-1 * (max(16px, env(safe-area-inset-right, 0px)) + 58px)); }
+.hero-img + .body { margin-top: 16px; }
+.hero-img img { width: 100%; height: 100%; object-fit: cover; display: block; opacity: .7; }
 .hero-img::after { content: ""; position: absolute; inset: 0; background: linear-gradient(transparent 20%, var(--bg)); }
 
 /* AI TL;DR */
@@ -194,4 +201,15 @@ h1 { font-size: clamp(36px, 10vw, 50px); line-height: .98; font-weight: 800; }
 .loading { height: 100%; display: grid; place-items: center; color: var(--muted); font: 500 13px var(--font-mono); }
 
 @media (prefers-reduced-motion: reduce) { .hint svg { animation: none; } .feed { scroll-behavior: auto; } * { transition: none !important; } }
-@media (max-height: 640px) { h2 { font-size: 25px; } .lede { -webkit-line-clamp: 4; } .hero-img { height: 32%; } }
+/* fit levels, added by fitCards() when the text doesn't fit the screen */
+.card.fit-1 .tags, .card.fit-1 .also { display: none; }
+.card.fit-2 .cves { display: none; }
+.card.fit-2 h2 { font-size: 24px; display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden; }
+.card.fit-2 .lede { -webkit-line-clamp: 3; }
+.card.fit-2 .tldr ul { font-size: 14px; }
+.card.fit-3 .body { gap: 10px; }
+.card.fit-3 .lede { -webkit-line-clamp: 2; }
+.card.fit-4 .tldr li:nth-child(3), .card.fit-4 .kev a:nth-child(n+3) { display: none; }
+.card.fit-4 .tldr .do { border-top: 0; padding-top: 0; }
+.card { justify-content: safe flex-end; }
+@media (max-height: 640px) { h2 { font-size: 25px; } .lede { -webkit-line-clamp: 4; } }

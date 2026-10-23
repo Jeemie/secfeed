@@ -69,7 +69,7 @@
       <button data-act="share" aria-label="Share"><span class="ic">${ICON.share}</span>Share</button>
       <a href="${safeUrl(it.url)}" target="_blank" rel="noopener" aria-label="Open source"><span class="ic">${ICON.open}</span>Open</a></div>`;
   };
-  const meta = (it, extra = '') => `<div class="meta"><span class="chip sev">${SEV[it.severity]}</span>${extra}<span>${esc(it.source)}</span><span>${ago(it.published)}</span></div>`;
+  const meta = (it, extra = '') => `<div class="meta"><span class="chip sev">${SEV[it.severity]}</span>${extra}<span class="src">${esc(it.source)} · ${ago(it.published)}</span></div>`;
 
   function newsCard(it, i) {
     const others = [...new Set((it.alsoIn || []).map((a) => a.source))].filter((s) => s !== it.source);
@@ -165,8 +165,26 @@
     $('#progress').innerHTML = deck.map(() => '<i></i>').join('');
     feedEl.querySelectorAll('[data-quiz]').forEach((el) => quiz(el.querySelector('.quiz'), deck[+el.dataset.i].qs));
     observe();
+    fitCards();
     setCount(-1);
   }
+  // If a card's text is taller than the screen (small phones, long AI summaries), drop the least important
+  // parts step by step so the headline is never pushed off the top.
+  function fitCards() {
+    feedEl.querySelectorAll('.card').forEach((card) => {
+      const body = card.querySelector('.body'); if (!body) return;
+      card.classList.remove('fit-1', 'fit-2', 'fit-3', 'fit-4');
+      const cs = getComputedStyle(card);
+      const avail = card.clientHeight - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom);
+      for (let lvl = 1; lvl <= 4 && body.offsetHeight > avail; lvl++) card.classList.add('fit-' + lvl);
+      // hide the banner if only a sliver of it would show below the top bar
+      const hero = card.querySelector('.hero-img');
+      if (hero) { hero.hidden = false; if (hero.offsetHeight - parseFloat(cs.paddingTop) < 70) hero.hidden = true; }
+    });
+  }
+  let fitT; addEventListener('resize', () => { clearTimeout(fitT); fitT = setTimeout(fitCards, 150); });
+  document.fonts?.ready.then(() => feed && fitCards());
+
   function setCount(i) {
     const n = deck.length;
     $('#count').textContent = i < 0 ? `${n} cards` : i >= n ? 'Done' : `${i + 1} / ${n}`;

@@ -1,5 +1,5 @@
 // Offline support: app shell is cached; the feed is fetched fresh and falls back to the last copy.
-const CACHE = 'secfeed-v1';
+const CACHE = 'secfeed-v2';
 const SHELL = ['./', 'index.html', 'app.css', 'app.js', 'manifest.webmanifest', 'icons/icon-192.png', 'icons/icon-512.png'];
 
 self.addEventListener('install', (e) => { e.waitUntil(caches.open(CACHE).then((c) => c.addAll(SHELL))); self.skipWaiting(); });
