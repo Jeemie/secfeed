@@ -107,9 +107,12 @@
       ? `<a class="poster${it.short ? ' short' : ''}" href="${safeUrl(it.url)}" target="_blank" rel="noopener" aria-label="Play on YouTube">${inner}</a>`
       : `<button class="poster${it.short ? ' short' : ''}" data-act="play" aria-label="Play video">${inner}</button>`;
     return `<section class="card" data-sev="info" data-i="${i}"><div class="body">
-      <div class="meta"><span class="chip">${it.short ? 'Short' : 'Tutorial'}</span><span>YouTube</span><span>${ago(it.published)}</span></div>
-      ${poster}<h2>${esc(it.title)}</h2>${it.summary ? `<p class="lede">${esc(it.summary)}</p>` : ''}</div>${rail(it)}</section>`;
+      <div class="meta"><span class="chip">${it.short ? 'Short' : 'Tutorial'}</span><span class="src">${esc(it.source)} · ${ago(it.published)}</span></div>
+      ${poster}<h2>${esc(it.title)}</h2>${it.summary ? `<p class="lede">${esc(it.summary)}</p>` : ''}
+      <a class="cta" href="${safeUrl(it.url)}" target="_blank" rel="noopener">${it.short ? 'Watch the Short on YouTube' : 'Watch on YouTube'} ↗</a></div>${rail(it)}</section>`;
   }
+  // In-app player. Sends our origin to YouTube (it refuses to play embeds that don't identify the site).
+  const playerHtml = (it) => `<div class="poster${it.short ? ' short' : ''}"><iframe src="https://www.youtube-nocookie.com/embed/${encodeURIComponent(it.videoId)}?autoplay=1&playsinline=1&rel=0&origin=${encodeURIComponent(location.origin)}" title="${esc(it.title)}" referrerpolicy="strict-origin-when-cross-origin" allow="autoplay; encrypted-media; picture-in-picture; fullscreen; web-share" allowfullscreen></iframe></div>`;
   function redditCard(it, i) {
     return `<section class="card" data-sev="info" data-i="${i}"><div class="body">
       <div class="meta"><span class="chip">${esc(it.source)}</span><span>Community</span><span>${ago(it.published)}</span></div>
@@ -273,7 +276,7 @@
     const act = b.dataset.act;
     if (act === 'save') toggleSave(it, b);
     else if (act === 'share') share(it);
-    else if (act === 'play') b.outerHTML = `<div class="poster${it.short ? ' short' : ''}"><iframe src="https://www.youtube-nocookie.com/embed/${encodeURIComponent(it.videoId)}?autoplay=1&playsinline=1&rel=0" title="${esc(it.title)}" allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowfullscreen></iframe></div>`;
+    else if (act === 'play') b.outerHTML = playerHtml(it);
     else if (act === 'replay') { replay = true; render(); }
     else if (act === 'saved') openSaved();
     else if (act === 'settings') openSettings();
