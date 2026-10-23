@@ -1,0 +1,55 @@
+name: Update feed
+
+on:
+  schedule:
+    - cron: '17 */2 * * *'
+  workflow_dispatch:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Restore AI summary cache
+        uses: actions/cache@v4
+        with:
+          path: data/.ai-cache.json
+          key: ai-cache-${{ github.run_id }}
+          restore-keys: ai-cache-
+      - name: Build feed
+        run: node scripts/build-feed.mjs
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+      - name: Assemble site
+        run: |
+          mkdir -p _site/data
+          cp index.html app.css app.js sw.js manifest.webmanifest _site/
+          cp -r icons _site/
+          cp data/feed.json _site/data/
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
