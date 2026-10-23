@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<feed xmlns:yt="http://www.youtube.com/xml/schemas/2015" xmlns:media="http://search.yahoo.com/mrss/" xmlns="http://www.w3.org/2005/Atom">
+ <title>David Bombal</title>
+ <entry>
+  <yt:videoId>sBuxwMAfGnI</yt:videoId>
+  <title>MALWARE ANALYSIS // How to get started with John Hammond</title>
+  <link rel="alternate" href="https://www.youtube.com/watch?v=sBuxwMAfGnI"/>
+  <author><name>David Bombal</name></author>
+  <published>2026-10-10T15:00:00+00:00</published>
+  <media:group>
+   <media:thumbnail url="https://i.ytimg.com/vi/sBuxwMAfGnI/hqdefault.jpg" width="480" height="360"/>
+   <media:description>John Hammond walks through how to get started with malware analysis: tools, safe lab setup, and where to practice.</media:description>
+   <media:community><media:statistics views="250000"/></media:community>
+  </media:group>
+ </entry>
+</feed>
